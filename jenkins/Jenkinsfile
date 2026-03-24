@@ -1,1 +1,41 @@
-Jenkinsfile
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "pranay419/bankapp"
+        TAG = "${BUILD_NUMBER}"
+    }
+
+    stages {
+
+        stage('Code Checkout') {
+            steps {
+                git 'https://github.com/your-repo/bankapp-devops-project.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh "docker build -t $IMAGE_NAME:$TAG ."
+            }
+        }
+
+        stage('Push to DockerHub') {
+            steps {
+                withCredentials([string(credentialsId: 'docker-pass', variable: 'PASS')]) {
+                    sh "docker login -u pranay419 -p $PASS"
+                    sh "docker push $IMAGE_NAME:$TAG"
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh """
+                kubectl set image deployment/bankapp-deployment \
+                bankapp-container=$IMAGE_NAME:$TAG
+                """
+            }
+        }
+    }
+}
