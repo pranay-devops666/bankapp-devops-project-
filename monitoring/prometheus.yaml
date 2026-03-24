@@ -1,1 +1,1 @@
-prometheus.yaml
+kubectl apply -f monitoring/
